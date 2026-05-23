@@ -8,8 +8,8 @@ export class AppService {
     private readonly prisma: PrismaService,
     private readonly response: ResponseService,
   ) {}
-  test() {
-    const res = this.prisma.test();
+  async test() {
+    const res = await this.prisma.user.findMany();
     return this.response.success(res);
   }
 }
