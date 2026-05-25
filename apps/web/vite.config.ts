@@ -10,6 +10,12 @@ export default defineConfig({
   plugins: [vue(), vueDevTools(), tailwindcss()],
   server: {
     port: Config.ports.web,
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
   },
   resolve: {
     alias: {

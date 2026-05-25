@@ -26,6 +26,9 @@ importers:
       '@element-plus/icons-vue':
         specifier: ^2.3.2
         version: 2.3.2(vue@3.5.34(typescript@6.0.3))
+      '@en-learning/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@en-learning/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -97,6 +100,9 @@ importers:
 
   server:
     dependencies:
+      '@en-learning/common':
+        specifier: workspace:*
+        version: link:../packages/common
       '@en-learning/config':
         specifier: workspace:*
         version: link:../packages/config
