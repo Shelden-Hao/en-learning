@@ -18,6 +18,7 @@
         </div>
         <div class="flex items-center gap-2 pt-10">
           <button
+            @click="showLogin"
             class="bg-indigo-700 text-white rounded-[100px] px-4 py-2 cursor-pointer text-sm block w-30 h-10"
           >
             立即学习
@@ -122,6 +123,7 @@
 </template>
 
 <script setup lang="ts">
+import { useLogin } from "@/hooks/useLogin.ts";
 import Hologram from "./components/Hologram.vue";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -257,6 +259,14 @@ const initProject = () => {
     },
   );
 };
+
+const { login } = useLogin();
+
+function showLogin() {
+  login().then(() => {
+    console.log("跳转到课程页面");
+  });
+}
 
 onMounted(() => {
   initProject();
