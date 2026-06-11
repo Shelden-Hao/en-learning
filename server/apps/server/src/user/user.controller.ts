@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { UserService } from './user.service';
-import type { UserLogin, UserRegister } from '@en-learning/common/user';
+import type { Token, UserLogin, UserRegister } from '@en-learning/common/user';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -14,5 +14,11 @@ export class UserController {
   @Post('register')
   register(@Body() createUserDto: UserRegister) {
     return this.userService.register(createUserDto);
+  }
+
+  // 刷新token
+  @Post('refresh-token')
+  refreshToken(@Body() createUserDto: Omit<Token, 'accessToken'>) {
+    return this.userService.refreshToken(createUserDto);
   }
 }

@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import type { UserLogin, UserRegister } from '@en-learning/common/user';
+import type {
+  RefreshTokenPayload,
+  Token,
+  UserLogin,
+  UserRegister,
+} from '@en-learning/common/user';
 import { PrismaService, ResponseService } from '@libs/shared';
 import type { Prisma } from '@libs/shared/generated/prisma/client';
+import { AuthService } from '../auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 const userSelect = {
   id: true,
@@ -22,6 +29,8 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly responseService: ResponseService,
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
   ) {}
   //登录
   async login(createUserDto: UserLogin) {
@@ -48,8 +57,16 @@ export class UserService {
       },
       select: userSelect,
     });
-
-    return this.responseService.success(updateUser);
+    // 4. 生成token
+    const token = this.authService.generateToken({
+      userId: updateUser.id,
+      email: updateUser.email,
+      name: updateUser.name,
+    });
+    return this.responseService.success({
+      ...updateUser,
+      token,
+    });
   }
   //注册 Primsa 所有的API都是异步的
   async register(createUserDto: UserRegister) {
@@ -87,6 +104,46 @@ export class UserService {
       data,
       select: userSelect,
     });
-    return this.responseService.success(newUser);
+    //4. 生成token
+    const token = this.authService.generateToken({
+      userId: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+    });
+    return this.responseService.success({
+      ...newUser,
+      token,
+    });
+  }
+  //刷新token
+  async refreshToken(createUserDto: Omit<Token, 'accessToken'>) {
+    //1. 检查token是否过期
+    try {
+      const decoded = this.jwtService.verify<RefreshTokenPayload>(
+        createUserDto.refreshToken,
+      );
+      // 防止使用 accessToken 冒充刷新token 进行攻击
+      if (decoded.tokenType !== 'refresh') {
+        return this.responseService.error(null, '刷新token过期');
+      }
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: decoded.userId, //查询用户ID
+        },
+      });
+      // 检查用户是否存在，如果不存在说明 userId 是伪造的
+      if (!user) {
+        return this.responseService.error(null, '刷新不存在');
+      }
+      // 生成新的 refreshToken 和 accessToken
+      const token = this.authService.generateToken({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      });
+      return this.responseService.success(token);
+    } catch (error) {
+      return this.responseService.error(null, '刷新token过期');
+    }
   }
 }

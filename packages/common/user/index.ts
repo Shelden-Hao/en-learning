@@ -33,3 +33,11 @@ export type Token = {
 export type WebResultUser = ResultUser & {
   token: Token;
 };
+
+export type TokenPayload = Pick<User, "email" | "name"> & {
+  userId: User["id"];
+};
+
+export type RefreshTokenPayload = TokenPayload & {
+  tokenType: "refresh" | "access";
+};
