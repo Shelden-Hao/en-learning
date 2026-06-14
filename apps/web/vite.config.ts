@@ -12,7 +12,11 @@ export default defineConfig({
     port: Config.ports.web,
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: `http://localhost:${Config.ports.server}`,
+        changeOrigin: true,
+      },
+      "/ai": {
+        target: `http://localhost:${Config.ports.ai}`,
         changeOrigin: true,
       },
     },
