@@ -11,7 +11,7 @@
       <div class="text-2xl font-bold">English App</div>
       <template v-for="route in routes" :key="route.path">
         <div
-          @click="router.push(route.path)"
+          @click="gotoPath(route.path)"
           :class="isActive(route.path)"
           class="flex items-center gap-2 cursor-pointer rounded-[10px] px-2 py-1"
         >
@@ -41,17 +41,19 @@
           userStore.getUser?.dayNumber ?? 0
         }}</span>
       </div>
-      <div
-        class="flex items-center gap-2 border-l cursor-pointer border-gray-200 pl-4"
-      >
-        <img
-          class="w-10 h-10 rounded-full ml-2 mr-2"
-          src="https://gips3.baidu.com/it/u=3493347002,3356558679&fm=3074&app=3074&f=PNG?w=2048&h=2048"
-        />
-        <span class="text-sm font-bold">{{
-          userStore.getUser?.name ?? "未登录"
-        }}</span>
-      </div>
+      <el-popover :width="340">
+        <template #reference>
+          <div
+            class="flex items-center gap-2 border-l cursor-pointer border-gray-200 pl-4"
+          >
+            <img class="w-10 h-10 rounded-full ml-2 mr-2" :src="avatar" />
+            <span class="text-sm font-bold">{{
+              userStore.getUser?.name ?? "游客"
+            }}</span>
+          </div>
+        </template>
+        <Profile />
+      </el-popover>
     </div>
   </header>
 </template>
@@ -69,23 +71,26 @@ import {
 import { useRouter } from "vue-router";
 import { watch, ref } from "vue";
 import { useUserStore } from "@/stores/user";
+import Profile from "../Profile/index.vue";
+import { useAvatar } from "@/hooks/useAvatar";
+import { useLogin } from "@/hooks/useLogin";
+const { avatar } = useAvatar();
+const { login } = useLogin();
 const userStore = useUserStore();
 const router = useRouter();
 const currentPath = ref("");
 const routes = [
-  { path: "/", name: "主页", icon: HomeFilled },
-  { path: "/smart/chat", name: "AI", icon: MagicStick },
-  { path: "/word-book/index", name: "词库", icon: Notebook },
-  { path: "/courses/index", name: "课程", icon: Reading },
-  { path: "/setting/index", name: "设置", icon: Setting },
+  { path: "/", name: "主页", icon: HomeFilled, isAuth: false }, //不需要登录
+  { path: "/smart/chat", name: "AI", icon: MagicStick, isAuth: true }, //需要登录
+  { path: "/word-book/index", name: "词库", icon: Notebook, isAuth: false }, //不需要登录
+  { path: "/courses/index", name: "课程", icon: Reading, isAuth: false }, //不需要登录
+  { path: "/setting/index", name: "设置", icon: Setting, isAuth: true }, //需要登录
 ];
 const isActive = (path: string) => {
   return currentPath.value === path
     ? "bg-blue-200 text-blue-700"
     : "text-gray-500 hover:bg-blue-200 hover:text-blue-700";
 };
-
-// 通过 watch 监听到路由变化并修改了 currentPath.value 时，Vue 会通知所有依赖这个 ref 的地方（在这里就是模版中的 isActive ）
 watch(
   () => router.currentRoute.value,
   (newVal) => {
@@ -95,4 +100,17 @@ watch(
     immediate: true,
   },
 );
+const gotoPath = async (path: string) => {
+  const isAuth = routes.find((route) => route.path === path)?.isAuth ?? false;
+  //如果是true表示必须登录
+  if (isAuth) {
+    await login();
+    //如果登录了下面的代码才会走
+    if (userStore.getUser) {
+      router.push(path);
+    }
+  } else {
+    router.push(path);
+  }
+};
 </script>

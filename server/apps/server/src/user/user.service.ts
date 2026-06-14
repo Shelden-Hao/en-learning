@@ -4,11 +4,15 @@ import type {
   Token,
   UserLogin,
   UserRegister,
+  UserUpdate,
 } from '@en-learning/common/user';
 import { PrismaService, ResponseService } from '@libs/shared';
 import type { Prisma } from '@libs/shared/generated/prisma/client';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { MinioService } from '@libs/shared/minio/minio.service';
+import { ConfigService } from '@nestjs/config';
+import type { Request } from 'express';
 
 const userSelect = {
   id: true,
@@ -17,11 +21,24 @@ const userSelect = {
   phone: true,
   address: true,
   avatar: true,
+  bio: true,
+  isTimingTask: true,
+  timingTaskTime: true,
   createdAt: true,
   updatedAt: true,
   lastLoginAt: true,
   wordNumber: true,
   dayNumber: true,
+};
+
+export const updateUserSelect = {
+  name: true,
+  email: true,
+  address: true,
+  avatar: true,
+  bio: true,
+  isTimingTask: true,
+  timingTaskTime: true,
 };
 
 @Injectable()
@@ -31,6 +48,8 @@ export class UserService {
     private readonly responseService: ResponseService,
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
+    private readonly minioService: MinioService,
+    private readonly configService: ConfigService,
   ) {}
   //登录
   async login(createUserDto: UserLogin) {
@@ -145,5 +164,52 @@ export class UserService {
     } catch (error) {
       return this.responseService.error(null, '刷新token过期');
     }
+  }
+  //上传头像
+  async uploadAvatar(file: Express.Multer.File) {
+    if (!file) {
+      return this.responseService.error(null, '文件不存在');
+    }
+    if (file.size > 1024 * 1024 * 5) {
+      return this.responseService.error(null, '文件大小不能超过5MB');
+    }
+    if (!file.mimetype.includes('image')) {
+      return this.responseService.error(null, '文件类型不支持');
+    }
+    const fileName = `${Date.now()}-${file.originalname}`;
+    const client = this.minioService.getClient();
+    const bucket = this.minioService.getBucket();
+    await client.putObject(bucket, fileName, file.buffer, file.size, {
+      'Content-Type': file.mimetype,
+    });
+    const isHttps = !!Number(this.configService.get('MINIO_USE_SSL'));
+    const baseUrl = isHttps ? 'https' : 'http';
+    const port = this.configService.get('MINIO_PORT');
+    // 如果数据发生了迁移 ip 都会改变，因此这里我们只需要返回路径即可
+    const databaseUrl = `/${bucket}/${fileName}`;
+    const previewUrl = `${baseUrl}://${this.configService.get('MINIO_ENDPOINT')}:${port}${databaseUrl}`;
+    return this.responseService.success({
+      previewUrl,
+      databaseUrl,
+    });
+  }
+  //更新用户信息
+  async updateUser(createUserDto: UserUpdate, user: Request['user']) {
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id: user!.userId,
+      },
+      data: {
+        name: createUserDto.name,
+        email: createUserDto.email,
+        address: createUserDto.address,
+        avatar: createUserDto.avatar,
+        bio: createUserDto.bio,
+        isTimingTask: createUserDto.isTimingTask,
+        timingTaskTime: createUserDto.timingTaskTime,
+      },
+      select: updateUserSelect,
+    });
+    return this.responseService.success(updatedUser);
   }
 }

@@ -6,12 +6,33 @@ export interface User {
   address?: string | null; // 地址
   password: string; // 密码
   avatar?: string | null; // 头像
+  bio?: string | null; // 签名
+  isTimingTask: boolean; // 是否开启定时任务
+  timingTaskTime: string; // 定时任务时间
   wordNumber: number; // 单词数量
   dayNumber: number; // 打卡天数
   createdAt: Date; // 创建时间
   updatedAt: Date; // 更新时间
   lastLoginAt?: Date | null; // 最后登录时间
 }
+
+// 更新用户信息
+export type UserUpdate = Pick<
+  User,
+  | "name"
+  | "email"
+  | "address"
+  | "bio"
+  | "isTimingTask"
+  | "timingTaskTime"
+  | "avatar"
+>;
+
+// 头像返回的类型
+export type AvatarResult = {
+  previewUrl: string; // 预览URL
+  databaseUrl: string; // 数据库URL
+};
 
 // Pick 选择
 //登录的类型

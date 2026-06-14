@@ -2,7 +2,12 @@ import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import router from "@/router";
 import { refreshTokenApi } from "./auth";
+import { ElMessage } from "element-plus";
 
+export const uploadUrl = import.meta.env.DEV
+  ? `http://${import.meta.env.VITE_MINIO_ENDPOINT}:${import.meta.env.VITE_MINIO_PORT}`
+  : "http://线上地址待定";
+// export const uploadUrl = "http://192.168.1.11:9000";
 export const timeout = 50000;
 export const serverApi = axios.create({
   baseURL: "/api/v1",
@@ -24,6 +29,10 @@ serverApi.interceptors.response.use(
     return res.data;
   },
   async (error) => {
+    if (error.code === "ERR_NETWORK") {
+      ElMessage.error("网络连接失败,请重试");
+      return Promise.reject(error);
+    }
     if (error.response.status !== 401) {
       return Promise.reject(error);
     }
@@ -35,6 +44,7 @@ serverApi.interceptors.response.use(
     if (!accessToken || !refreshToken) {
       userStore.logout(); // 清空user
       router.replace("/"); // 跳转到首页
+      ElMessage.error("登录已过期,请重新登录");
       return Promise.reject(error);
     }
     if (isRefreshing) {
@@ -56,6 +66,7 @@ serverApi.interceptors.response.use(
       } else {
         userStore.logout(); // 清空 user
         router.replace("/"); // 跳转到首页
+        ElMessage.error("登录已过期,请重新登录");
         return Promise.reject(error);
       }
       const newAccessToken = newToken.data.accessToken;
