@@ -1,0 +1,11 @@
+import layout from '@/layout/index.vue'
+
+export default [
+    {
+        path: '/courses', //路由后面多个s
+        component: layout,
+        children: [
+            { path: 'index', component: () => import('@/views/Course/index.vue') },
+        ]
+    }
+]
