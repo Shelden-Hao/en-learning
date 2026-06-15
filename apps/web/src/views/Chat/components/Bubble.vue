@@ -21,7 +21,7 @@
           </div>
           <div
             v-if="item.role === 'ai' && item.content !== ''"
-            class="text-sm text-gray-700 max-w-[80%] bg-white rounded-lg p-2 shadow-md"
+            class="text-sm text-gray-700 max-w-[80%] bg-white rounded-lg p-2 shadow-md deepseek-markdown"
             v-html="parseMarkdown(item.content)"
           />
         </div>
@@ -43,15 +43,31 @@
         type="primary"
         @click="sendMessage"
       ></el-button>
+      <el-button
+        v-if="!isRecording"
+        class="ml-2"
+        :icon="Mic"
+        type="primary"
+        @click="startRecording"
+      ></el-button>
+      <el-button
+        v-else
+        class="ml-2"
+        :icon="VideoPause"
+        type="primary"
+        @click="stopRecording"
+      ></el-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, useTemplateRef, watch, nextTick } from "vue";
-import { Position } from "@element-plus/icons-vue";
+import { Mic, Position, VideoPause } from "@element-plus/icons-vue";
 import type { ChatMessageList } from "@en-learning/common/chat";
 import { marked } from "marked";
+import "@/assets/css/deep-seek.css";
+import { useVoiceToText } from "@/hooks/useVoiceToText.ts";
 
 const emits = defineEmits(["onSendMessage"]);
 const chatRef = useTemplateRef<HTMLDivElement>("chatRef"); //读取DOM元素
@@ -84,4 +100,19 @@ watch(
     deep: true,
   },
 );
+const { isRecording, start, stop } = useVoiceToText({
+  lang: "zh-CN",
+  continuous: true,
+});
+// 开始录音
+const startRecording = () => {
+  start((result) => {
+    message.value = result;
+  });
+};
+// 停止录音
+const stopRecording = () => {
+  stop();
+  sendMessage();
+};
 </script>

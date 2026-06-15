@@ -9,7 +9,7 @@ export const createDeepSeek = () => {
     apiKey: configService.get<string>('DEEPSEEK_API_KEY'), //从环境变量中获取api key
     model: configService.get<string>('DEEPSEEK_API_MODEL'), //从环境变量中获取模型
     temperature: 1.3, // https://api-docs.deepseek.com/zh-cn/api/create-chat-completion
-    maxTokens: 4396, //token限制
+    maxTokens: 18000, //token限制
     streaming: true, //流式输出
   });
 };
