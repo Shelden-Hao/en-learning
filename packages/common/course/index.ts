@@ -6,7 +6,7 @@ export interface Course {
   description?: string; // 课程描述
   teacher: string; // 教师
   url: string; // 课程url
-  price: number; // 课程价格
+  price: string; // 课程价格
 }
 
 // 定义多个课程的列表

@@ -6,9 +6,19 @@ import { SharedModule } from '@libs/shared';
 import { WordBookModule } from './word-book/word-book.module';
 import { AuthModule } from './auth/auth.module';
 import { CourseModule } from './course/course.module';
+import { PayModule } from './pay/pay.module';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
-  imports: [UserModule, SharedModule, WordBookModule, AuthModule, CourseModule],
+  imports: [
+    UserModule,
+    SharedModule,
+    WordBookModule,
+    AuthModule,
+    CourseModule,
+    PayModule,
+    SocketModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

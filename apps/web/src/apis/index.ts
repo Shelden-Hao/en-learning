@@ -7,7 +7,10 @@ import { ElMessage } from "element-plus";
 export const uploadUrl = import.meta.env.DEV
   ? `http://${import.meta.env.VITE_MINIO_ENDPOINT}:${import.meta.env.VITE_MINIO_PORT}`
   : "http://线上地址待定";
-// export const uploadUrl = "http://192.168.1.11:9000";
+// export const uploadUrl = "http://192.168.1.12:9000";
+export const socketUrl = import.meta.env.DEV
+  ? "http://localhost:3000"
+  : "http://线上地址待定";
 export const timeout = 50000;
 export const serverApi = axios.create({
   baseURL: "/api/v1",
