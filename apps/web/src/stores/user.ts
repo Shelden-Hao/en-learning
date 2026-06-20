@@ -5,6 +5,7 @@ import type {
   WebResultUser,
   UserUpdate,
 } from "@en-learning/common/user";
+
 export const useUserStore = defineStore(
   "user",
   () => {
@@ -45,6 +46,10 @@ export const useUserStore = defineStore(
         avatar: user.value!.avatar,
       };
     });
+    //更新用户单词数量
+    const updateUserWordNumber = (wordNumber: number) => {
+      user.value!.wordNumber = wordNumber;
+    };
     return {
       user,
       setUser,
@@ -55,6 +60,7 @@ export const useUserStore = defineStore(
       updateToken,
       updateUser,
       getUpdateUserInfo,
+      updateUserWordNumber,
     };
   },
   { persist: true },
