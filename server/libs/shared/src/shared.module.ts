@@ -6,6 +6,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MinioModule } from './minio/minio.module';
 import { PayModule } from './pay/pay.module';
+import { EmailModule } from './email/email.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Global()
 @Module({
@@ -18,6 +20,7 @@ import { PayModule } from './pay/pay.module';
     ConfigModule,
     MinioModule,
     PayModule,
+    EmailModule,
   ],
   imports: [
     PrismaModule,
@@ -44,6 +47,18 @@ import { PayModule } from './pay/pay.module';
     }),
     MinioModule,
     PayModule,
+    EmailModule,
+    BullModule.forRootAsync({
+      // 为了使用环境变量，所以需要使用工厂模式来引入
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get('REDIS_HOST'),
+          port: Number(configService.get('REDIS_PORT')),
+        },
+      }),
+    }),
   ],
 })
 export class SharedModule {}
